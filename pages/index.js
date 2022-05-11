@@ -1,6 +1,9 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
 import styles from "../styles/Home.module.css";
 import { useState } from "react";
+import Link from "next/link";
+// import { google } from "googleapis";
 
 // export async function getServerSideProps() {
 //   const res = await fetch("http://localhost:3000/api/getData");
@@ -17,6 +20,7 @@ const getData = async () => {
 };
 
 export default function Home() {
+  const router = useRouter();
   const curStateText = {
     wait: "로그인 정보를 입력하세요.",
     loggedIn: "로그인 성공.",
@@ -25,6 +29,11 @@ export default function Home() {
   };
   const [currentState, setCurrentState] = useState(curStateText.wait);
   const [schedules, setSchedules] = useState([]);
+
+  // const oauth2Client = new google.auth.OAuth2(
+  //   "850040068289-gshv3nt5g98npo3s7v7nm8h6h28hhk23.apps.googleusercontent.com",
+  //   "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"
+  // );
 
   return (
     <div className={styles.container}>
@@ -73,6 +82,9 @@ export default function Home() {
           >
             시작
           </button>
+          <Link href="/api/auth">
+            <a>구글 인증</a>
+          </Link>
           <div>
             <p style={{ textAlign: "center" }}>{currentState}</p>
             <ul>
