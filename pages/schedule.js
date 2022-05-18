@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Layout from "../lib/layout";
 import utilStyles from "../styles/util.module.css";
+import { useRouter } from "next/router";
 
 // export async function getServerSideProps() {
 //   const res = await fetch("http://localhost:3000/api/getData");
@@ -9,18 +10,6 @@ import utilStyles from "../styles/util.module.css";
 //     props: json,
 //   };
 // }
-
-// const getData = async () => {
-//   const res = await fetch("/api/getData", {
-//     method: "post",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({
-
-//     }),
-//   });
-//   const json = await res.json();
-//   return json;
-// };
 
 function inform() {
   alert(
@@ -39,6 +28,10 @@ export default function Schedule() {
   };
   const [currentState, setCurrentState] = useState(curStateText.wait);
   const [schedules, setSchedules] = useState([]);
+
+  //파라미터에서 코드 획득
+  const router = useRouter();
+  const code = router.query.code;
 
   return (
     <Layout>
@@ -59,6 +52,7 @@ export default function Schedule() {
             className={utilStyles.input}
           />
         </div>
+        <input type="hidden" name="CODE" value={code} />
         <input type="submit" className={utilStyles.button} />
       </form>
       <div>
