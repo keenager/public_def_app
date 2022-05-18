@@ -1,6 +1,6 @@
 import Layout from "../lib/layout";
 
-export default function complete() {
+export default function Complete() {
   return (
     <Layout>
       <h3>완료!!!</h3>
