@@ -33,9 +33,9 @@ export default async function GetData(req, res) {
 const NockingWebsite = async (id, pw) => {
   // const browser = await puppeteer.launch({ headless: true });
   const browser = await chromium.puppeteer.launch({
-    args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-    defaultViewport: chrome.defaultViewport,
-    executablePath: await chrome.executablePath,
+    args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath,
     headless: true,
     ignoreHTTPSErrors: true,
   });
