@@ -1,6 +1,19 @@
-import puppeteer from "puppeteer";
+// import puppeteer from "puppeteer";
 import { google } from "googleapis";
 import createClient from "../../lib/createClient";
+
+let chrome = {};
+let puppeteer;
+
+if (process.env.VERCEL) {
+  // running on the Vercel platform.
+  chrome = require("chrome-aws-lambda");
+  puppeteer = require("puppeteer-core");
+} else {
+  // running locally.
+  puppeteer = require("puppeteer");
+}
+
 const calendar = google.calendar("v3");
 const HOW_MANY_WEEKS = 10;
 
@@ -30,7 +43,15 @@ export default async function GetData(req, res) {
 }
 
 const NockingWebsite = async (id, pw) => {
-  const browser = await puppeteer.launch({ headless: true });
+  // const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({
+    args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+    defaultViewport: chrome.defaultViewport,
+    executablePath: await chrome.executablePath,
+    headless: true,
+    ignoreHTTPSErrors: true,
+  });
+
   const page = await browser.newPage();
   await page.goto("https://case.publicdef.net");
 
