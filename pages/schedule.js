@@ -24,7 +24,9 @@ import utilStyles from "../styles/util.module.css";
 
 function inform() {
   alert(
-    "짧은 시간에 다수의 요청을 보낼 경우 구글 서버에서 에러를 내버려서 현재로서는 부득이 시간이 다소 걸리는 방식을 택했습니다. 언제가 될진 모르겠지만, 혹시 해결책을 발견하면 반영하겠습니다"
+    `  짧은 시간에 다수의 요청을 보낼 경우 구글 서버에서 에러를 내버려서 현재로서는 부득이 시간이 다소 걸리는 방식을 택했습니다. 
+  언제가 될진 모르겠지만, 혹시 해결책을 발견하면 반영하겠습니다.
+  오류 발견, 요청 사항 있으시면 심 변호사님에게 말씀해주세요 :)`
   );
 }
 
@@ -69,7 +71,7 @@ export default function Schedule() {
           ))}
         </ul>
         <p>
-          완료되기까지 50초 정도 걸리니 참고하세요(
+          완료되기까지 40~50초 정도 걸리니 참고하세요(
           <span className={utilStyles.click} onClick={inform}>
             클릭
           </span>

@@ -36,7 +36,7 @@ try {
 //   while (Date.now() < wakeUpTime) {}
 // }
 
-export default async function getData(req, res) {
+export default async function GetData(req, res) {
   const USER_ID = req.body.ID;
   const USER_PW = req.body.PW;
   // const CODE = req.body.CODE;
