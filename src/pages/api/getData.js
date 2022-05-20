@@ -21,7 +21,7 @@ export default async function GetData(req, res) {
     let schedules = await NockingWebsite(USER_ID, USER_PW);
     // result = await calendar.calendarList.list();
     await insertEvent(schedules);
-    res.redirect(307, '/api/complete');
+    res.redirect(307, "/api/complete");
   } catch (err) {
     console.error(err);
     res.writeHead(200, { "Content-Type": "text/plain;charset=utf-8" });
@@ -31,7 +31,10 @@ export default async function GetData(req, res) {
 }
 
 const NockingWebsite = async (id, pw) => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
 
   const page = await browser.newPage();
   await page.goto("https://case.publicdef.net");
