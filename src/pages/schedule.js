@@ -41,6 +41,7 @@ export default function Schedule() {
       setCurrentState(curStateText.loading);
     }
   }
+
   //파라미터에서 코드 획득
   const router = useRouter();
   const code = router.query.code;
