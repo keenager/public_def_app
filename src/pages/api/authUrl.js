@@ -1,8 +1,6 @@
 import createClient from "../../lib/createClient";
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
-// const TOKEN_PATH = __dirname + "/token.json";
-// const CODE_PATH = __dirname + "/auth/code.txt";
 
 export default function redirectToAuthUrl(req, res) {
   try {

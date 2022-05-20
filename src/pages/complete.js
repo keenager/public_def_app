@@ -1,4 +1,4 @@
-import Layout from "../lib/layout";
+import Layout from "../components/layout";
 
 export default function Complete() {
   return (

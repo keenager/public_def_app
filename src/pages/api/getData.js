@@ -1,69 +1,38 @@
-import fs from "fs";
-import puppeteer from "puppeteer";
 import { google } from "googleapis";
 import createClient from "../../lib/createClient";
+import puppeteer from "puppeteer";
+
 const calendar = google.calendar("v3");
 const HOW_MANY_WEEKS = 10;
 
-// const SCOPES = ["https://www.googleapis.com/auth/calendar"];
-// const CS_PATH = __dirname + "/auth/client_secret.json";
-const TOKEN_PATH = __dirname + "/token.json";
-
-// let client_secret_file = "test";
-// try {
-//   client_secret_file = fs.readFileSync(CS_PATH);
-// } catch (err) {
-//   console.log("Error loading client secret file: ", err);
-// }
-
-// const json = JSON.parse(client_secret_file);
-
-// const { client_id, client_secret } = json.web;
-// const redirect_uri = "http://localhost:3000/api/auth/getCode";
-// const oAuth2Client = new google.auth.OAuth2(
-//   client_id,
-//   client_secret,
-//   redirect_uri
-// );
-
-try {
-} catch (err) {
-  console.error(err);
-}
-
-// function sleep(ms) {
-//   const wakeUpTime = Date.now() + ms;
-//   while (Date.now() < wakeUpTime) {}
-// }
-
-export default async function getData(req, res) {
+export default async function GetData(req, res) {
   const USER_ID = req.body.ID;
   const USER_PW = req.body.PW;
-  // const CODE = req.body.CODE;
-  // let result = { current: "비어있는 상태." };
+  const CODE = req.body.CODE;
   try {
+    //클라이언트 생성, 토큰 획득
     const oAuth2Client = createClient();
-    let token_file = "token file";
-    token_file = fs.readFileSync(TOKEN_PATH);
-    const json2 = JSON.parse(token_file);
-    oAuth2Client.setCredentials(json2);
+    oAuth2Client.getToken(CODE, (err, token) => {
+      if (err) throw "Error retrieving access token: " + err;
+      oAuth2Client.setCredentials(token);
+    });
+
     google.options({ auth: oAuth2Client });
     let schedules = await NockingWebsite(USER_ID, USER_PW);
     // result = await calendar.calendarList.list();
     await insertEvent(schedules);
-    res.redirect("/complete");
+    res.redirect(307, '/api/complete');
   } catch (err) {
     console.error(err);
     res.writeHead(200, { "Content-Type": "text/plain;charset=utf-8" });
     res.write(err);
     res.end();
   }
-
-  // return res.status(200).json({ result });
 }
 
 const NockingWebsite = async (id, pw) => {
   const browser = await puppeteer.launch({ headless: true });
+
   const page = await browser.newPage();
   await page.goto("https://case.publicdef.net");
 
@@ -79,12 +48,8 @@ const NockingWebsite = async (id, pw) => {
   const loginButton = await page.$("input#loginbutton");
   await Promise.all([page.waitForNavigation(), loginButton.click()]);
   if (page.url().includes("login")) {
-    // throw{Error('로그인에 실패하였습니다.')}
     throw "로그인에 실패하였습니다.";
   }
-  // setState(() {
-  //   displayText = '로그인에 성공하였습니다.';
-  // });
 
   const monthlySchedule = await page.$("div.navbar > a");
   await Promise.all([page.waitForNavigation(), monthlySchedule.click()]);

@@ -1,9 +1,11 @@
 import { useState } from "react";
-import Layout from "../lib/layout";
-import utilStyles from '../styles/util.module.css';
+import Layout from "../components/layout";
+import utilStyles from "../../styles/util.module.css";
 
 export default function Home() {
-  const [curState, setCurState] = useState("구글 계정에 대한 접근 권한을 얻습니다. 시작하려면 버튼을 누르세요.");
+  const [curState, setCurState] = useState(
+    "구글 계정에 대한 접근 권한을 얻습니다. 시작하려면 버튼을 누르세요."
+  );
   async function handleClick() {
     try {
       const res = await fetch("/api/authUrl");
@@ -20,7 +22,9 @@ export default function Home() {
   }
   return (
     <Layout>
-      <button className={utilStyles.button} onClick={handleClick}>시작</button>
+      <button className={utilStyles.button} onClick={handleClick}>
+        시작
+      </button>
       <p>{curState}</p>
     </Layout>
   );
