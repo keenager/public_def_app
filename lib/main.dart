@@ -3,8 +3,10 @@ import 'package:puppeteer/puppeteer.dart' as ppt;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis/calendar/v3.dart' as cal;
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future main() async {
+  await dotenv.load(fileName: '.env');
   runApp(const MyApp());
 }
 
@@ -28,20 +30,40 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+const howManyWeeks = 10;
+
 class _MyHomePageState extends State<MyHomePage> {
   String displayText = '국선 사건관리시스템 ID&PW를 입력하세요';
   final c1 = TextEditingController();
   final c2 = TextEditingController();
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text('국선 일정 '),
-            Icon(Icons.arrow_forward_sharp),
-            Text(' 구글 캘린더'),
+          children: [
+            TextButton(
+              child: const Text(
+                '국선 일정 ',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () async {
+                await launchUrlString('https://case.publicdef.net');
+              },
+            ),
+            const Icon(Icons.arrow_forward_sharp),
+            TextButton(
+              child: const Text(
+                ' 구글 캘린더',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () async {
+                await launchUrlString('https://calendar.google.com');
+              },
+            ),
           ],
         ),
         centerTitle: true,
@@ -60,6 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                 ),
+                onSubmitted: (value) {
+                  if (!isLoading) mainProcess();
+                },
               ),
             ),
             const SizedBox(
@@ -76,29 +101,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 obscureText: true,
+                onSubmitted: (value) {
+                  if (!isLoading) mainProcess();
+                },
               ),
             ),
             const SizedBox(
               height: 20,
             ),
-            ElevatedButton(
-              child: const Text('시작'),
-              onPressed: () async {
-                setState(() {
-                  displayText = '국선 사건관리시스템에 접속합니다.';
-                });
-                List<dynamic>? schedules =
-                    await getData(id: c1.text, password: c2.text);
-                if (schedules == null) {
-                  setState(() {
-                    displayText = '일정이 없거나 일정을 가져오지 못했습니다.';
-                  });
-                } else {
-                  await Future.delayed(const Duration(seconds: 2));
-                  insertEvent(schedules);
-                }
-              },
-            ),
+            if (!isLoading)
+              ElevatedButton(
+                child: const Text('시작'),
+                onPressed: mainProcess,
+              ),
             const SizedBox(
               height: 20,
             ),
@@ -115,24 +130,18 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
-            child: RichText(
-              text: const TextSpan(
-                text: 'Made by ',
-                style: TextStyle(fontSize: 15, color: Colors.black),
-                children: [
-                  TextSpan(
-                    text: 'JYS',
-                    style: TextStyle(fontSize: 20, color: Colors.black),
-                  ),
-                ],
-              ),
-            ),
+            child: const Text('Info.'),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    content: const Text('문의는 심 변호사님에게 해주세요 :)'),
+                    content: const Text(
+                        '''  - 상단 바의 '국선 일정'과 '구글 캘린더'를 클릭하면 해당 웹페이지로 이동합니다.
+  - 짧은 시간에 다수의 요청을 보낼 경우 구글 서버에서 에러를 내버려서 현재로서는 부득이 시간이 다소 걸리는 방식을 택했습니다(30초 정도). 
+  - 언제가 될진 모르겠지만, 혹시 해결책을 발견하면 반영하겠습니다.
+  - 오류 발견, 요청 사항 있으시면 심 변호사님에게 말씀해주세요 :)
+  '''),
                     actions: [
                       TextButton(
                         child: const Text('OK'),
@@ -146,9 +155,43 @@ class _MyHomePageState extends State<MyHomePage> {
               );
             },
           ),
+          const Text('|  '),
+          RichText(
+            text: const TextSpan(
+              text: 'Made by ',
+              style: TextStyle(fontSize: 15, color: Colors.black),
+              children: [
+                TextSpan(
+                  text: 'JYS',
+                  style: TextStyle(fontSize: 20, color: Colors.black),
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );
+  }
+
+  Future<void> mainProcess() async {
+    setState(() {
+      isLoading = true;
+      displayText = '국선 사건관리시스템에 접속합니다.';
+    });
+    List<dynamic>? schedules = await getData(id: c1.text, password: c2.text);
+    if (schedules == null) {
+      setState(() {
+        isLoading = false;
+        displayText = '일정을 가져오지 못했습니다.\n아이디 또는 비밀번호를 확인해주세요.';
+      });
+    } else {
+      await Future.delayed(const Duration(seconds: 2));
+      await insertEvent(schedules);
+      setState(() {
+        isLoading = false;
+        displayText = '구글캘린더 추가 완료!!!';
+      });
+    }
   }
 
   Future<List<dynamic>?> getData(
@@ -185,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await weeklySchedule.click();
 
     List<dynamic> schedules = await getSchedules(myPage);
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < howManyWeeks; i++) {
       var next = await myPage.$('.fc-next-button');
       await next.click();
       var temp = await getSchedules(myPage);
@@ -235,7 +278,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> insertEvent(List<dynamic> schedules) async {
-    var _clientId = ClientId('', '');
+    var _clientId = ClientId(
+      dotenv.get('CLIENT_ID'),
+      dotenv.get('CLIENT_SECRET'),
+    );
     const _scopes = [cal.CalendarApi.calendarScope];
     try {
       var client = await clientViaUserConsent(_clientId, _scopes, prompt);
@@ -270,7 +316,8 @@ class _MyHomePageState extends State<MyHomePage> {
             .insert(event, newCalendar.id ?? 'no Id...');
         if (createEvent.status == 'confirmed') {
           setState(() {
-            displayText = '사건 일정이 구글캘린더에 추가되었습니다.';
+            displayText =
+                '사건 일정($howManyWeeks주)을 구글캘린더에 추가하고 있습니다.\n 30초 정도 걸립니다.';
           });
         } else {
           setState(() {
