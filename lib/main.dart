@@ -158,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const Text('|  '),
           RichText(
             text: const TextSpan(
-              text: 'Made by ',
+              text: 'Developed by ',
               style: TextStyle(fontSize: 15, color: Colors.black),
               children: [
                 TextSpan(
@@ -227,12 +227,35 @@ class _MyHomePageState extends State<MyHomePage> {
     var weeklySchedule = await myPage.$('.fc-listWeek-button');
     await weeklySchedule.click();
 
+    setState(() {
+      displayText = '일정을 불러오는 중입니다.';
+    });
+
     List<dynamic> schedules = await getSchedules(myPage);
     for (int i = 0; i < howManyWeeks; i++) {
       var next = await myPage.$('.fc-next-button');
       await next.click();
       var temp = await getSchedules(myPage);
       schedules = [...schedules, ...temp];
+    }
+    for (var i = 0; i < schedules.length; i++) {
+      if (schedules[i]['link'] == null) {
+        continue;
+      }
+      await Future.wait([
+        myPage.waitForNavigation(),
+        myPage.goto(schedules[i]['link']),
+        myPage.waitForSelector('tbody.casedetail_td')
+      ]);
+      String courtroom = await myPage.$eval('tbody.casedetail_td', r'''
+        node => {
+          var arr = node.innerText.match(/제?\d+호 ?법정/g);
+          return arr[arr.length - 1];
+          }
+      ''');
+      RegExp exp = RegExp(r'\d+호');
+      courtroom = '[' + (exp.stringMatch(courtroom) ?? '?') + ']';
+      schedules[i]['courtroom'] = courtroom;
     }
 
     setState(() {
@@ -261,11 +284,13 @@ class _MyHomePageState extends State<MyHomePage> {
           continue;
         }
         var time = tr.querySelector('td.fc-list-item-time').textContent;
-        arr.push({date, time, content});
+        var link = content.includes('의견서') ? null : tr.querySelector('a').href;
+        arr.push({date, time, content, link});
       }
       return arr;
     }
     ''');
+
     return result;
   }
 
@@ -302,7 +327,8 @@ class _MyHomePageState extends State<MyHomePage> {
       );
       for (int i = 0; i < schedules.length; i++) {
         cal.Event event = cal.Event();
-        event.summary = schedules[i]['content'];
+        event.summary =
+            (schedules[i]['courtroom'] ?? '') + schedules[i]['content'];
         cal.EventDateTime edt = cal.EventDateTime();
         if (schedules[i]['time'] == '종일') {
           edt.date = DateTime.parse(schedules[i]['date']);
