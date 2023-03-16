@@ -52,14 +52,17 @@ Future<List<dynamic>?> getData({
 
   //법정 추가
   for (var i = 0; i < schedules.length; i++) {
-    if (!schedules[i]['link'].contains('사건상세내용')) {
+    if (schedules[i]['link'] == null) {
       continue;
     }
+
+    //링크 페이지로 이동
     await Future.wait([
       myPage.waitForNavigation(),
       myPage.goto(baseURL + schedules[i]['link']),
       myPage.waitForSelector('tbody.casedetail_td')
     ]);
+
     String courtroom = await myPage.$eval('tbody.casedetail_td', r'''
         node => {
           var arr = node.innerText.match(/\d{3,}호/g); 
@@ -91,13 +94,16 @@ Future<List<dynamic>> getSchedules(ppt.Page page) async {
           date = tr.dataset.date;
           continue;
         }
-        var content = tr.querySelector('td.fc-list-item-title').textContent;
-        var time = tr.querySelector('td.fc-list-item-time').textContent;
-        var link = tr.querySelector('a').getAttribute('href');
 
-        if(content.includes('기일표') || content.includes('의견서')) {
+        var content = tr.querySelector('td.fc-list-item-title').textContent;
+        if(content.includes('기일표')) {
           continue;
         }     
+
+        var time = tr.querySelector('td.fc-list-item-time').textContent;
+
+        var link = content.includes('의견서') ? null : tr.querySelector('a').getAttribute('href');
+
         
         arr.push({date, time, content, link});
       }

@@ -43,8 +43,18 @@ Future<void> insertEvent({
     );
     for (int i = 0; i < schedules.length; i++) {
       cal.Event event = cal.Event();
-      event.summary =
-          (schedules[i]['courtroom'] ?? '') + schedules[i]['content'];
+      String courtroom = schedules[i].containsKey('courtroom')
+          ? schedules[i]['courtroom']
+          : '';
+
+      String summary = '';
+      if (schedules[i]['content'].contains('기일')) {
+        summary = courtroom + schedules[i]['content'];
+      } else {
+        summary = schedules[i]['content'] + courtroom;
+      }
+      event.summary = summary;
+
       cal.EventDateTime _eventDateTime = cal.EventDateTime();
       cal.EventReminders _reminders = cal.EventReminders();
 
