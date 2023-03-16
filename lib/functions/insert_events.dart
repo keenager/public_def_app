@@ -15,7 +15,10 @@ void prompt(String urlString) async {
   }
 }
 
-Future<void> insertEvent(List<dynamic> schedules) async {
+Future<void> insertEvent({
+  required String id,
+  required List<dynamic> schedules,
+}) async {
   var _clientId = ClientId(
     dotenv.get('CLIENT_ID'),
     dotenv.get('CLIENT_SECRET'),
@@ -42,15 +45,28 @@ Future<void> insertEvent(List<dynamic> schedules) async {
       cal.Event event = cal.Event();
       event.summary =
           (schedules[i]['courtroom'] ?? '') + schedules[i]['content'];
-      cal.EventDateTime edt = cal.EventDateTime();
+      cal.EventDateTime _eventDateTime = cal.EventDateTime();
+      cal.EventReminders _reminders = cal.EventReminders();
+
       if (schedules[i]['time'] == '종일') {
-        edt.date = DateTime.parse(schedules[i]['date']);
+        _eventDateTime.date = DateTime.parse(schedules[i]['date']);
       } else {
-        edt.dateTime =
+        _eventDateTime.dateTime =
             DateTime.parse(schedules[i]['date'] + ' ' + schedules[i]['time']);
+
+        if (id == 'sauddl') {
+          _reminders
+            ..useDefault = false
+            ..overrides = (schedules[i]['time'] == '10:00' ||
+                    schedules[i]['time'] == '14:00')
+                ? [cal.EventReminder(method: 'popup', minutes: 20)]
+                : [cal.EventReminder(method: 'popup', minutes: 10)];
+        }
       }
-      event.start = edt;
-      event.end = edt;
+      event.start = _eventDateTime;
+      event.end = _eventDateTime;
+      event.reminders = _reminders;
+
       cal.Event createEvent =
           await calendarApi.events.insert(event, newCalendar.id ?? 'no Id...');
       if (createEvent.status == 'confirmed') {

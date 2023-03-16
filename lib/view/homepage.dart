@@ -99,11 +99,22 @@ class MyHomePage extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-            Obx(() => Text(
-                  messageController.displayText.value,
-                  style: const TextStyle(
-                    fontSize: 20,
-                  ),
+            Obx(() => Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      messageController.displayText.value,
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    if (messageController.displayText.value ==
+                            messageController.messages.loading ||
+                        messageController.displayText.value ==
+                            messageController.messages.inserting)
+                      const CircularProgressIndicator(),
+                  ],
                 )),
           ],
         ),
@@ -120,9 +131,10 @@ class MyHomePage extends StatelessWidget {
                   return AlertDialog(
                     content: const Text(
                         '''  - 상단 바의 '국선 일정'과 '구글 캘린더'를 클릭하면 해당 웹페이지로 이동합니다.
-  - 짧은 시간에 다수의 요청을 보낼 경우 구글 서버에서 에러를 내버려서 현재로서는 부득이 시간이 다소 걸리는 방식을 택했습니다(30초 정도). 
-  - 언제가 될진 모르겠지만, 혹시 해결책을 발견하면 반영하겠습니다.
   - 오류 발견, 요청 사항 있으시면 심 변호사님에게 말씀해주세요 :)
+  - 2022. 7. 6. 법정 표시, 알람 추가
+  - 2022. 9. 11. 개인일정이 있는 경우 생기던 에러 해결, 알람 삭제 
+  - 2022. 9. 28. 재판부별로 법정표시 방법이 달라 생기던 오류 해결
   '''),
                     actions: [
                       TextButton(
@@ -169,7 +181,10 @@ Future<void> mainProcess() async {
     messageController.changeText(messages.notLoaded);
   } else {
     await Future.delayed(const Duration(seconds: 2));
-    await insertEvent(schedules);
+    await insertEvent(
+      id: c1.text,
+      schedules: schedules,
+    );
 
     buttonController.isLoading.value = false;
     messageController.changeText(messages.success);
